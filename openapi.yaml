@@ -375,7 +375,6 @@ components:
       required:
         - officialName
         - dateOfBirth
-        - primaryAddress
         - mobileNumber
         - emailAddress
         - commercialMessages
