@@ -373,7 +373,6 @@ components:
     User:
       type: object
       required:
-        - id
         - officialName
         - dateOfBirth
         - primaryAddress
