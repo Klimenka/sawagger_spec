@@ -1,211 +1,180 @@
 openapi: 3.0.0
 info:
   title: Banking API
+  version: 1.0.0
   description: Banking api
   contact:
     email: example@email.com
-  version: 1.0.0
 servers:
-- url: http://banking-application-api.herokuapp.com
-  description: This the is a simple REST API banking application
+- description: This the is a simple REST API banking application
+  url: https://banking-application-api.herokuapp.com
+  
 paths:
   /users:
     get:
       tags:
-      - users
-      summary: get all users
-      description: getting all users (employees and customers) by Employee
-      operationId: getUsers
+        - users
       parameters:
-      - name: userType
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - Customer
-          - Employee
+        - in: query
+          name: userType
+          schema:
+            type: string
+            enum: [Customer, Employee]
+          required: false
+      summary: get all users
+      operationId: getUsers
+      description: getting all users (employees and customers) by Employee
       responses:
-        200:
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  anyOf:
-                  - $ref: '#/components/schemas/Customer'
-                  - $ref: '#/components/schemas/Employee'
-        401:
-          description: Unauthorized
-        404:
-          description: The specified resource was not found
+                  anyOf: 
+                    - $ref: '#/components/schemas/Customer'
+                    - $ref: '#/components/schemas/Employee'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+          
       security:
       - api_key: []
+      
     post:
       tags:
-      - users
-      summary: Adds a new user
-      description: Adds a new user and returns Login object. If it is a customer then
-        a new bank account is created as well.
+        - users
       operationId: addUser
+      description: Adds a new user and returns Login object. If it is a customer then a new bank account is created as well.
+      summary: Adds a new user
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               oneOf:
-              - $ref: '#/components/schemas/Customer'
-              - $ref: '#/components/schemas/Employee'
-        required: true
+                - $ref: '#/components/schemas/Customer'
+                - $ref: '#/components/schemas/Employee'
       responses:
-        201:
+        '201':
           description: the user has been created.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Login'
-        400:
-          description: Bad request.
-        401:
-          description: Unauthorized
+                
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401': 
+          $ref: '#/components/responses/Unauthorized'
+      
       security:
       - api_key: []
+      
   /users/{userId}:
     get:
       tags:
-      - users
-      summary: Gets a user by user ID
-      description: Gets a user by user ID
+        - users
       operationId: getUserById
+      description: Gets a user by user ID
+      summary: Gets a user by user ID
       parameters:
-      - name: userId
-        in: path
-        description: The id of the user to return
-        required: true
-        style: simple
-        explode: false
-        schema:
-          minimum: 1
-          type: integer
-          format: int64
+      - $ref: '#/components/parameters/userId'
       responses:
-        200:
+        '200':
           description: a user object
-          content:
-            application/json:
-              schema:
+          content: 
+            application/json: 
+              schema: 
                 oneOf:
-                - $ref: '#/components/schemas/Customer'
-                - $ref: '#/components/schemas/Employee'
+                  - $ref: '#/components/schemas/Customer'
+                  - $ref: '#/components/schemas/Employee'
     delete:
       tags:
-      - users
-      summary: Delete a user by user ID
+        - users
       operationId: deleteUserById
+      summary: Delete a user by user ID
       parameters:
-      - name: userId
-        in: path
-        description: The id of the user to return
-        required: true
-        style: simple
-        explode: false
-        schema:
-          minimum: 1
-          type: integer
-          format: int64
+        - $ref: '#/components/parameters/userId'
       responses:
-        204:
+        '204':
           description: No content
-        400:
-          description: Bad request.
-        401:
-          description: Unauthorized
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401': 
+          $ref: '#/components/responses/Unauthorized'       
+      
       security:
       - api_key: []
+      
   /users/login:
     post:
       tags:
-      - users
-      summary: Returns an auth token
+        - users
       operationId: createUserToken
+      summary: Returns an auth token
       requestBody:
-        description: Logs a user in and return an auth token, if the specified username
-          and password are correct.
+        description: Logs a user in and return an auth token, if the specified username and password are correct. 
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Login'
-        required: true
       responses:
-        200:
+        '200':
           description: Token send
-        400:
-          description: Bad request.
-        404:
-          description: The specified resource was not found
+        '400': 
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  
   /users/{userId}/updatePassword:
     put:
       tags:
-      - users
-      summary: update the user's login info
-      description: calling this will allow the user to change his/her password
+        - users
       operationId: updateUserLogin
+      summary: update the user's login info
+      description: calling this will allow the user to change his/her password 
       parameters:
-      - name: userId
-        in: path
-        description: The id of the user to return
-        required: true
-        style: simple
-        explode: false
-        schema:
-          minimum: 1
-          type: integer
-          format: int64
+      - $ref: '#/components/parameters/userId'
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Login'
-        required: true
       responses:
-        201:
+        '201':
           description: user password has successfully been updated
-        400:
-          description: Bad request.
-        404:
-          description: The specified resource was not found
+        '400': 
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  
   /accounts:
     get:
       tags:
-      - accounts
+      - accounts 
       summary: get all bank accounts
-      description: Calling this will allow Employees to check data of all accounts
-        or filter them by the date of opening or based on the type of bank account
-        [saving or current]
       operationId: getBankAccounts
+      description: Calling this will allow Employees to check data of all accounts or filter them by the date of opening or based on the type of bank account [saving or current]
       parameters:
-      - name: dateOfOpening
-        in: query
-        required: false
-        style: form
-        explode: true
+      - in: query
+        name: dateOfOpening
         schema:
           type: string
           format: date
-      - name: accountType
-        in: query
         required: false
-        style: form
-        explode: true
+      - in: query
+        name: accountType
         schema:
           type: string
-          enum:
-          - current
-          - saving
+          enum: ["current","saving"]
+        required: false
       responses:
-        200:
+        '200':
           description: the accounts data
           content:
             application/json:
@@ -213,77 +182,66 @@ paths:
                 type: array
                 items:
                   anyOf:
-                  - $ref: '#/components/schemas/CurrentAccount'
-                  - $ref: '#/components/schemas/SavingAccount'
-        400:
-          description: Bad request.
-        401:
-          description: Unauthorized
-        404:
-          description: The specified resource was not found
+                    - $ref: '#/components/schemas/CurrentAccount'
+                    - $ref: '#/components/schemas/SavingAccount'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400': 
+          $ref: '#/components/responses/BadRequest'
+        '401': 
+          $ref: '#/components/responses/Unauthorized'
+          
       security:
       - api_key: []
+      
     post:
       tags:
-      - accounts
+      - accounts 
       summary: create a bank account
-      description: Calling this will allow employees to open an account for a specific
-        customer
       operationId: createBankAccount
+      description: Calling this will allow employees to open an account for a specific customer
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               oneOf:
-              - $ref: '#/components/schemas/CurrentAccount'
-              - $ref: '#/components/schemas/SavingAccount'
-        required: true
+                - $ref: '#/components/schemas/CurrentAccount'
+                - $ref: '#/components/schemas/SavingAccount'
       responses:
-        201:
+        '201':
           description: the account has been created
           content:
             application/json:
               schema:
                 oneOf:
-                - $ref: '#/components/schemas/CurrentAccount'
-                - $ref: '#/components/schemas/SavingAccount'
-        400:
-          description: Bad request.
-        401:
-          description: Unauthorized
+                  - $ref: '#/components/schemas/CurrentAccount'
+                  - $ref: '#/components/schemas/SavingAccount'
+        '400': 
+          $ref: '#/components/responses/BadRequest'
+        '401': 
+          $ref: '#/components/responses/Unauthorized'
+      
       security:
       - api_key: []
+      
   /accounts/{userId}:
     get:
       tags:
-      - accounts
+      - accounts 
       summary: get bank accounts of a specific user
-      description: Calling this will allow both customer and employee to check data
-        of a specific account userId and filter them by bank account type
       operationId: getBankAccount
+      description: Calling this will allow both customer and employee to check data of a specific account userId and filter them by bank account type
       parameters:
-      - name: userId
-        in: path
-        description: The id of the user to return
-        required: true
-        style: simple
-        explode: false
-        schema:
-          minimum: 1
-          type: integer
-          format: int64
-      - name: accountType
-        in: query
-        required: false
-        style: form
-        explode: true
+      - $ref: '#/components/parameters/userId'
+      - in: query
+        name: accountType
         schema:
           type: string
-          enum:
-          - current
-          - saving
+          enum: ["current","saving"]
+        required: false
       responses:
-        200:
+        '200':
           description: the account data
           content:
             application/json:
@@ -291,74 +249,67 @@ paths:
                 type: array
                 items:
                   anyOf:
-                  - $ref: '#/components/schemas/CurrentAccount'
-                  - $ref: '#/components/schemas/SavingAccount'
-        400:
-          description: Bad request.
-        404:
-          description: The specified resource was not found
+                    - $ref: '#/components/schemas/CurrentAccount'
+                    - $ref: '#/components/schemas/SavingAccount'
+        '400': 
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+          
   /accounts/{accountNumber}:
     delete:
       tags:
-      - accounts
+      - accounts 
       summary: close a bank account
-      description: Calling this will allow an employee to close a specific bank account
       operationId: closeBankAccount
+      description: Calling this will allow an employee to close a specific bank account
       parameters:
-      - name: accountNumber
-        in: path
-        description: the account number
+      - in: path
+        name: accountNumber
         required: true
-        style: simple
-        explode: false
+        description: the account number
         schema:
           type: string
       responses:
-        204:
+        '204':
           description: the bank account has successfully been closed
-        400:
-          description: Bad request.
-        401:
-          description: Unauthorized
-        404:
-          description: The specified resource was not found
+        '400': 
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401': 
+          $ref: '#/components/responses/Unauthorized'
+      
       security:
       - api_key: []
+      
   /transactions:
     get:
       tags:
       - transactions
       summary: retrieves all transactions which has been made from a user's account.
-      description: This function will retrieve the transaction activities of one account.
-        The user will have the option to filter the transaction activities by using
-        dates.
       operationId: getTransactionHistory
+      description: This function will retrieve the transaction activities of one account. The user will have the option to filter the transaction activities by using dates.
       parameters:
-      - name: accountNumber
-        in: query
+      - in: query
+        name: accountNumber
+        schema:
+          type: string
         required: true
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: dateFrom
-        in: query
-        required: false
-        style: form
-        explode: true
+      - in: query
+        name: dateFrom
         schema:
           type: string
           format: date
-      - name: dateTo
-        in: query
         required: false
-        style: form
-        explode: true
+      - in: query
+        name: dateTo
         schema:
           type: string
           format: date
+        required: false
       responses:
-        200:
+        '200':
           description: Transaction history has successfully been retrieved.
           content:
             application/json:
@@ -366,15 +317,15 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Transaction'
-        400:
-          description: Bad request.
-    post:
-      tags:
-      - transactions
-      summary: transfer/withdraw/deposit money
-      description: Calling this will allow a user/employee to transfer/withdraw/deposit
-        money
+        '400': 
+          $ref: '#/components/responses/BadRequest'
+          
+    post: 
+      tags: 
+        - transactions
       operationId: createTransaction
+      summary: transfer/withdraw/deposit money 
+      description: Calling this will allow a user/employee to transfer/withdraw/deposit money
       requestBody:
         content:
           application/json:
@@ -385,30 +336,28 @@ paths:
                 style: form
                 explode: true
       responses:
-        201:
+        '201':
           description: Transaction has successfully been send.
-        400:
-          description: Bad request.
-        403:
+        '400': 
+          $ref: '#/components/responses/BadRequest'
+        '403':
           description: Insufficient balance.
+          
   /getTransaction:
     get:
       tags:
       - transactions
       summary: retrieves one transaction from the user
-      description: This function will retrieve the transaction activities of one account
-        by using the transaction Id.
       operationId: getTransaction
+      description: This function will retrieve the transaction activities of one account by using the transaction Id.
       parameters:
-      - name: transactionId
-        in: query
-        required: true
-        style: form
-        explode: true
+      - in: query
+        name: transactionId
         schema:
           type: integer
+        required: true 
       responses:
-        200:
+        '200':
           description: Transaction has successfully been retrieved.
           content:
             application/json:
@@ -416,20 +365,21 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Transaction'
-        400:
-          description: Bad request.
+        '400': 
+          $ref: '#/components/responses/BadRequest'
+    
 components:
   schemas:
     User:
-      required:
-      - commercialMessages
-      - dateOfBirth
-      - emailAddress
-      - id
-      - mobileNumber
-      - officialName
-      - primaryAddress
       type: object
+      required:
+        - id
+        - officialName
+        - dateOfBirth
+        - primaryAddress
+        - mobileNumber
+        - emailAddress
+        - commercialMessages
       properties:
         id:
           type: integer
@@ -439,9 +389,7 @@ components:
           type: string
         sex:
           type: string
-          enum:
-          - male
-          - female
+          enum: [male, female]
         dateOfBirth:
           type: string
         primaryAddress:
@@ -454,29 +402,27 @@ components:
           type: string
         commercialMessages:
           type: string
-          enum:
-          - by post
-          - by bankmail
-          - by telephone
-          - by email
+          enum: [by post, by bankmail, by telephone, by email]
         preferredLanguage:
           type: string
-          enum:
-          - Dutch
-          - English
+          enum: 
+            - Dutch 
+            - English
         roles:
           type: array
-          items:
+          items: 
             $ref: '#/components/schemas/Role'
     Customer:
-      allOf:
-      - $ref: '#/components/schemas/User'
+      allOf:    
+        - $ref: '#/components/schemas/User'
+          
     Employee:
+      allOf:    
+        - $ref: '#/components/schemas/User'
       properties:
         jobPosition:
           type: string
-      allOf:
-      - $ref: '#/components/schemas/User'
+            
     Address:
       type: object
       properties:
@@ -497,12 +443,13 @@ components:
           type: integer
         role:
           type: string
+          
     Account:
-      required:
-      - accountType
-      - dateOfOpening
-      - userId
       type: object
+      required:
+        - dateOfOpening
+        - userId
+        - accountType
       properties:
         accountNumber:
           type: integer
@@ -522,32 +469,30 @@ components:
           - $ref: '#/components/schemas/User'
         currency:
           type: string
-        accountType:
+        accountType: 
           type: string
-          enum:
-          - current
-          - saving
+          enum: ["current","saving"]
         accountStatus:
           type: string
-          default: opened
-          enum:
-          - opened
-          - closed
+          enum: ["opened", "closed"]
+          default: "opened"
+          
     CurrentAccount:
       allOf:
-      - $ref: '#/components/schemas/Account'
+        - $ref: '#/components/schemas/Account'
     SavingAccount:
+      allOf:
+        - $ref: '#/components/schemas/Account'
       properties:
         interestRate:
           type: number
           format: float
-      allOf:
-      - $ref: '#/components/schemas/Account'
+          
     Login:
-      required:
-      - password
-      - userName
       type: object
+      required:
+        - userName
+        - password
       properties:
         userName:
           type: string
@@ -556,14 +501,15 @@ components:
         user:
           allOf:
           - $ref: '#/components/schemas/User'
+       
     Transaction:
+      type: object
       required:
+      - transaction_id
       - amount
+      - userPerforming
       - date
       - transactionType
-      - transaction_id
-      - userPerforming
-      type: object
       properties:
         transaction_id:
           type: integer
@@ -572,10 +518,10 @@ components:
         accountTo:
           type: string
         amount:
-          maximum: 10000
-          minimum: 1
           type: number
           format: float
+          minimum: 1
+          maximum: 10000
         userPerforming:
           allOf:
           - $ref: '#/components/schemas/User'
@@ -584,36 +530,40 @@ components:
           format: date
         transactionStatus:
           type: string
-          default: pending
           enum:
           - pending
           - successful
           - failed
+          default: pending
         transactionType:
           type: string
           enum:
           - transaction
           - withdraw
           - deposit
-  responses:
-    NotFound:
-      description: The specified resource was not found
-    Unauthorized:
-      description: Unauthorized
-    BadRequest:
-      description: Bad request.
+    
   parameters:
     userId:
-      name: userId
       in: path
-      description: The id of the user to return
+      name: userId
       required: true
-      style: simple
-      explode: false
+      description: The id of the user to return
       schema:
-        minimum: 1
         type: integer
         format: int64
+        minimum: 1
+        
+  responses: 
+    NotFound:
+      description: The specified resource was not found
+      
+    Unauthorized:
+      description: Unauthorized
+      
+    BadRequest:
+      description: Bad request.
+      
+  
   securitySchemes:
     api_key:
       type: apiKey
