@@ -7,7 +7,7 @@ info:
     email: example@email.com
 servers:
 - description: This the is a simple REST API banking application
-  url: http://banking-application-api.herokuapp.com
+  url: https://banking-application-api.herokuapp.com
   
 paths:
   /users:
